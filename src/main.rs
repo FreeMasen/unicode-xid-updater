@@ -1,5 +1,4 @@
 use semver::Version;
-use serde::Serialize;
 
 static AUTH_TOKEN: &str = include_str!("../.token");
 
@@ -29,7 +28,7 @@ async fn main() {
 
 use std::process::Command;
 fn run_update(version: &Version) -> Result<(), Box<dyn std::error::Error>> {
-    let _ = create_git_base().arg("pull").spawn()?.wait()?;
+    let _ = create_base_cmd("git").arg("pull").spawn()?.wait()?;
 
     Command::new("python")
         .arg("../unicode-xid/scripts/unicode.py")
@@ -42,20 +41,24 @@ fn run_update(version: &Version) -> Result<(), Box<dyn std::error::Error>> {
         std::fs::remove_file(&new)?;
         std::fs::remove_file("./DerivedCoreProperties.txt")?;
         std::fs::remove_file("./ReadMe.txt")?;
-        let _ = create_git_base().arg("add").arg(".").spawn()?.wait();
-        let _ = create_git_base()
+        let _fmt = create_base_cmd("cargo")
+            .arg("fmt")
+            .spawn()?
+            .wait();
+        let _ = create_base_cmd("git").arg("add").arg(".").spawn()?.wait();
+        let _ = create_base_cmd("git")
             .arg("commit")
             .arg("-m")
             .arg(&format!("updated to version {:}", version))
             .spawn()?
             .wait();
-        let _ = create_git_base().arg("push").spawn()?.wait();
+        let _ = create_base_cmd("git").arg("push").spawn()?.wait();
     }
     Ok(())
 }
 
-fn create_git_base() -> Command {
-    let mut ret = Command::new("git");
+fn create_base_cmd(cmd: &str) -> Command {
+    let mut ret = Command::new(cmd);
     ret.current_dir("../unicode-xid");
     ret
 }

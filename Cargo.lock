@@ -997,8 +997,6 @@ dependencies = [
  "octocrab",
  "reqwest",
  "semver",
- "serde",
- "serde_json",
  "tokio",
 ]
 
